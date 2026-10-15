@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-15
+
 ### Added
 
 - Local connection to SolarEdge inverters over Modbus TCP (SunSpec), without
@@ -39,4 +41,5 @@ the notes of the version's GitHub Release.
 - The detected hardware and today's production baseline are kept in `/data`,
   so the devices survive a restart while the inverter sleeps.
 
-[Unreleased]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/commits/main
+[Unreleased]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/releases/tag/v1.0.0
