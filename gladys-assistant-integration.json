@@ -1,0 +1,1074 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "SolarEdge (Modbus)",
+  "description": {
+    "en": "Local SolarEdge inverters, meters and batteries over Modbus TCP, no cloud.",
+    "fr": "Onduleurs, compteurs et batteries SolarEdge en local via Modbus TCP, sans cloud.",
+    "de": "SolarEdge-Wechselrichter, Zähler und Batterien lokal über Modbus TCP, ohne Cloud.",
+    "es": "Inversores, contadores y baterías SolarEdge en local por Modbus TCP, sin nube."
+  },
+  "version": "0.0.0",
+  "docker_image": "ghcr.io/gboulvin/gladys-solaredge-modbus:0.0.0",
+  "gladys_version": ">=5.1.0",
+  "cover_image": "https://raw.githubusercontent.com/gboulvin/Gladys-SolarEdge-ModBus/main/cover.png",
+  "categories": ["energy"],
+  "transports": ["local"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Enable Modbus TCP on the inverter",
+        "fr": "Activez Modbus TCP sur l'onduleur",
+        "de": "Modbus TCP am Wechselrichter aktivieren",
+        "es": "Active Modbus TCP en el inversor"
+      },
+      "description": {
+        "en": "In the SetApp application (or the LCD menu of older inverters): Commissioning > Site Communication > Modbus TCP > Enable. Note the port (1502 by default) and give the inverter a fixed IP address on your router. The inverter accepts a single Modbus client at a time.",
+        "fr": "Dans l'application SetApp (ou le menu LCD des anciens onduleurs) : Mise en service > Communication du site > Modbus TCP > Activer. Notez le port (1502 par défaut) et donnez une adresse IP fixe à l'onduleur sur votre box. L'onduleur n'accepte qu'un seul client Modbus à la fois.",
+        "de": "In der SetApp (oder im LCD-Menü älterer Wechselrichter): Inbetriebnahme > Standortkommunikation > Modbus TCP > Aktivieren. Notieren Sie den Port (standardmäßig 1502) und geben Sie dem Wechselrichter eine feste IP-Adresse im Router. Der Wechselrichter akzeptiert nur einen Modbus-Client gleichzeitig.",
+        "es": "En la aplicación SetApp (o el menú LCD de los inversores antiguos): Puesta en marcha > Comunicación del sitio > Modbus TCP > Activar. Anote el puerto (1502 por defecto) y asigne una IP fija al inversor en su router. El inversor solo acepta un cliente Modbus a la vez."
+      },
+      "links": [
+        {
+          "url": "https://knowledge-center.solaredge.com/sites/kc/files/sunspec-implementation-technical-note.pdf",
+          "label": {
+            "en": "SolarEdge SunSpec technical note",
+            "fr": "Note technique SunSpec SolarEdge",
+            "de": "Technische SunSpec-Notiz von SolarEdge",
+            "es": "Nota técnica SunSpec de SolarEdge"
+          }
+        }
+      ]
+    },
+    {
+      "key": "host",
+      "type": "string",
+      "label": {
+        "en": "Inverter IP address",
+        "fr": "Adresse IP de l'onduleur",
+        "de": "IP-Adresse des Wechselrichters",
+        "es": "Dirección IP del inversor"
+      },
+      "description": {
+        "en": "IP address or host name of the inverter (the leader one with several inverters).",
+        "fr": "Adresse IP ou nom d'hôte de l'onduleur (l'onduleur maître s'il y en a plusieurs).",
+        "de": "IP-Adresse oder Hostname des Wechselrichters (bei mehreren der Leader).",
+        "es": "Dirección IP o nombre de host del inversor (el maestro si hay varios)."
+      },
+      "placeholder": {
+        "en": "e.g. 192.168.1.50",
+        "fr": "ex. 192.168.1.50",
+        "de": "z. B. 192.168.1.50",
+        "es": "p. ej. 192.168.1.50"
+      },
+      "required": true
+    },
+    {
+      "key": "port",
+      "type": "number",
+      "label": {
+        "en": "Modbus TCP port",
+        "fr": "Port Modbus TCP",
+        "de": "Modbus-TCP-Port",
+        "es": "Puerto Modbus TCP"
+      },
+      "description": {
+        "en": "1502 on SetApp inverters, often 502 on older ones.",
+        "fr": "1502 sur les onduleurs SetApp, souvent 502 sur les plus anciens.",
+        "de": "1502 bei SetApp-Wechselrichtern, oft 502 bei älteren.",
+        "es": "1502 en los inversores SetApp, a menudo 502 en los antiguos."
+      },
+      "required": true,
+      "default": 1502,
+      "min": 1,
+      "max": 65535
+    },
+    {
+      "key": "unit_ids",
+      "type": "string",
+      "label": {
+        "en": "Modbus unit ids",
+        "fr": "Identifiants Modbus (unit id)",
+        "de": "Modbus-Unit-IDs",
+        "es": "Identificadores Modbus (unit id)"
+      },
+      "description": {
+        "en": "1 for a single inverter. Leader/follower installations: the ids of every inverter, comma separated (e.g. 1,2).",
+        "fr": "1 pour un seul onduleur. Installations maître/esclave : les identifiants de chaque onduleur, séparés par des virgules (ex. 1,2).",
+        "de": "1 für einen einzelnen Wechselrichter. Leader/Follower-Anlagen: die IDs aller Wechselrichter, durch Kommas getrennt (z. B. 1,2).",
+        "es": "1 para un solo inversor. Instalaciones maestro/esclavo: los identificadores de cada inversor, separados por comas (p. ej. 1,2)."
+      },
+      "placeholder": { "en": "1", "fr": "1", "de": "1", "es": "1" },
+      "required": false,
+      "default": "1"
+    },
+    {
+      "key": "poll_interval",
+      "type": "number",
+      "label": {
+        "en": "Refresh interval (s)",
+        "fr": "Intervalle de rafraîchissement (s)",
+        "de": "Aktualisierungsintervall (s)",
+        "es": "Intervalo de actualización (s)"
+      },
+      "description": {
+        "en": "Seconds between two reads of the whole installation (5 to 300).",
+        "fr": "Secondes entre deux lectures de toute l'installation (5 à 300).",
+        "de": "Sekunden zwischen zwei Abfragen der gesamten Anlage (5 bis 300).",
+        "es": "Segundos entre dos lecturas de toda la instalación (5 a 300)."
+      },
+      "required": false,
+      "default": 10,
+      "min": 5,
+      "max": 300
+    },
+    {
+      "key": "surplus_threshold",
+      "type": "number",
+      "label": {
+        "en": "Solar surplus threshold (W)",
+        "fr": "Seuil de surplus solaire (W)",
+        "de": "Schwelle für Solarüberschuss (W)",
+        "es": "Umbral de excedente solar (W)"
+      },
+      "description": {
+        "en": "Grid export above which the \"Solar surplus\" scene trigger fires. It ends below half of it.",
+        "fr": "Injection réseau au-delà de laquelle le déclencheur de scène « Surplus solaire » se déclenche. Il se termine sous la moitié.",
+        "de": "Netzeinspeisung, ab der der Szenen-Auslöser „Solarüberschuss“ auslöst. Er endet unter der Hälfte.",
+        "es": "Inyección a la red a partir de la cual se dispara el activador de escena «Excedente solar». Termina por debajo de la mitad."
+      },
+      "required": false,
+      "default": 500,
+      "min": 50,
+      "max": 100000
+    },
+    {
+      "key": "invert_grid_power",
+      "type": "boolean",
+      "label": {
+        "en": "Invert the grid meter direction",
+        "fr": "Inverser le sens du compteur réseau",
+        "de": "Richtung des Netzzählers umkehren",
+        "es": "Invertir el sentido del contador de red"
+      },
+      "description": {
+        "en": "Turn on if Gladys shows an import while you export (meter installed the other way round).",
+        "fr": "À activer si Gladys affiche un soutirage quand vous injectez (compteur installé à l'envers).",
+        "de": "Aktivieren, wenn Gladys einen Bezug anzeigt, während Sie einspeisen (Zähler falsch herum eingebaut).",
+        "es": "Actívelo si Gladys muestra un consumo de red cuando usted inyecta (contador instalado al revés)."
+      },
+      "required": false,
+      "default": false
+    },
+    {
+      "key": "enable_control",
+      "type": "boolean",
+      "label": {
+        "en": "Allow inverter control",
+        "fr": "Autoriser le pilotage de l'onduleur",
+        "de": "Steuerung des Wechselrichters erlauben",
+        "es": "Permitir el control del inversor"
+      },
+      "description": {
+        "en": "Lets scenes and widgets write to the inverter: production limit, battery mode and commands. Off: read only.",
+        "fr": "Permet aux scènes et widgets d'écrire dans l'onduleur : limite de production, mode et commandes batterie. Désactivé : lecture seule.",
+        "de": "Erlaubt Szenen und Widgets, in den Wechselrichter zu schreiben: Leistungsbegrenzung, Batteriemodus und -befehle. Aus: nur lesen.",
+        "es": "Permite que escenas y widgets escriban en el inversor: límite de producción, modo y órdenes de batería. Desactivado: solo lectura."
+      },
+      "required": false,
+      "default": false
+    }
+  ],
+  "actions": [
+    {
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Detects the inverters, meters and batteries, and adds them to the Discovery tab.",
+        "fr": "Détecte les onduleurs, compteurs et batteries, et les ajoute à l'onglet Découverte.",
+        "de": "Erkennt Wechselrichter, Zähler und Batterien und fügt sie dem Tab Erkennung hinzu.",
+        "es": "Detecta los inversores, contadores y baterías, y los añade a la pestaña Descubrimiento."
+      },
+      "timeout_seconds": 60
+    },
+    {
+      "key": "reset_production_limit",
+      "label": {
+        "en": "Remove the production limit",
+        "fr": "Lever la limite de production",
+        "de": "Leistungsbegrenzung aufheben",
+        "es": "Quitar el límite de producción"
+      },
+      "description": {
+        "en": "Sets the active power limit of every inverter back to 100 %.",
+        "fr": "Remet la limite de puissance active de chaque onduleur à 100 %.",
+        "de": "Setzt die Wirkleistungsbegrenzung aller Wechselrichter auf 100 % zurück.",
+        "es": "Vuelve a poner al 100 % el límite de potencia activa de cada inversor."
+      },
+      "timeout_seconds": 30
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "inverter_status_changed",
+      "label": {
+        "en": "Inverter status changed",
+        "fr": "État de l'onduleur modifié",
+        "de": "Wechselrichterstatus geändert",
+        "es": "Estado del inversor cambiado"
+      },
+      "description": {
+        "en": "The inverter starts producing, goes to sleep, reports a fault...",
+        "fr": "L'onduleur commence à produire, se met en veille, signale un défaut...",
+        "de": "Der Wechselrichter beginnt zu produzieren, schläft ein, meldet einen Fehler...",
+        "es": "El inversor empieza a producir, entra en reposo, indica un fallo..."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Inverter", "fr": "Onduleur", "de": "Wechselrichter", "es": "Inversor" }
+        },
+        {
+          "key": "status",
+          "type": "multi_select",
+          "label": {
+            "en": "New status",
+            "fr": "Nouvel état",
+            "de": "Neuer Status",
+            "es": "Nuevo estado"
+          },
+          "options": [
+            {
+              "value": "producing",
+              "label": {
+                "en": "Producing",
+                "fr": "En production",
+                "de": "Produziert",
+                "es": "Produciendo"
+              }
+            },
+            {
+              "value": "throttled",
+              "label": {
+                "en": "Producing (limited)",
+                "fr": "En production (bridée)",
+                "de": "Produziert (begrenzt)",
+                "es": "Produciendo (limitado)"
+              }
+            },
+            {
+              "value": "sleeping",
+              "label": {
+                "en": "Sleeping (night)",
+                "fr": "En veille (nuit)",
+                "de": "Ruhezustand (Nacht)",
+                "es": "En reposo (noche)"
+              }
+            },
+            {
+              "value": "starting",
+              "label": { "en": "Starting", "fr": "Démarrage", "de": "Startet", "es": "Arrancando" }
+            },
+            {
+              "value": "shutting_down",
+              "label": {
+                "en": "Shutting down",
+                "fr": "Arrêt en cours",
+                "de": "Fährt herunter",
+                "es": "Apagándose"
+              }
+            },
+            {
+              "value": "off",
+              "label": { "en": "Off", "fr": "Arrêté", "de": "Aus", "es": "Apagado" }
+            },
+            {
+              "value": "standby",
+              "label": { "en": "Standby", "fr": "Attente", "de": "Standby", "es": "En espera" }
+            },
+            {
+              "value": "fault",
+              "label": { "en": "Fault", "fr": "Défaut", "de": "Fehler", "es": "Fallo" }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "status",
+          "type": "string",
+          "label": {
+            "en": "New status",
+            "fr": "Nouvel état",
+            "de": "Neuer Status",
+            "es": "Nuevo estado"
+          }
+        },
+        {
+          "key": "previous_status",
+          "type": "string",
+          "label": {
+            "en": "Previous status",
+            "fr": "État précédent",
+            "de": "Vorheriger Status",
+            "es": "Estado anterior"
+          }
+        },
+        {
+          "key": "power",
+          "type": "number",
+          "label": {
+            "en": "Production (W)",
+            "fr": "Production (W)",
+            "de": "Erzeugung (W)",
+            "es": "Producción (W)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "solar_surplus",
+      "label": {
+        "en": "Solar surplus",
+        "fr": "Surplus solaire",
+        "de": "Solarüberschuss",
+        "es": "Excedente solar"
+      },
+      "description": {
+        "en": "Grid export goes above the configured threshold, or falls back below half of it.",
+        "fr": "L'injection réseau dépasse le seuil configuré, ou redescend sous sa moitié.",
+        "de": "Die Netzeinspeisung überschreitet die Schwelle oder fällt unter deren Hälfte.",
+        "es": "La inyección a la red supera el umbral configurado, o vuelve por debajo de su mitad."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Meter", "fr": "Compteur", "de": "Zähler", "es": "Contador" }
+        },
+        {
+          "key": "state",
+          "type": "multi_select",
+          "label": { "en": "Surplus", "fr": "Surplus", "de": "Überschuss", "es": "Excedente" },
+          "options": [
+            {
+              "value": "started",
+              "label": { "en": "Started", "fr": "Commence", "de": "Beginnt", "es": "Empieza" }
+            },
+            {
+              "value": "ended",
+              "label": { "en": "Ended", "fr": "Terminé", "de": "Endet", "es": "Termina" }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "state",
+          "type": "string",
+          "label": { "en": "Surplus", "fr": "Surplus", "de": "Überschuss", "es": "Excedente" }
+        },
+        {
+          "key": "export_power",
+          "type": "number",
+          "label": {
+            "en": "Grid export (W)",
+            "fr": "Injection réseau (W)",
+            "de": "Netzeinspeisung (W)",
+            "es": "Inyección a la red (W)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "battery_status_changed",
+      "label": {
+        "en": "Battery status changed",
+        "fr": "État de la batterie modifié",
+        "de": "Batteriestatus geändert",
+        "es": "Estado de la batería cambiado"
+      },
+      "description": {
+        "en": "The battery starts charging, discharging, goes idle or reports a fault.",
+        "fr": "La batterie commence à charger, à se décharger, se met au repos ou signale un défaut.",
+        "de": "Die Batterie beginnt zu laden, zu entladen, geht in Leerlauf oder meldet einen Fehler.",
+        "es": "La batería empieza a cargar, a descargar, queda inactiva o indica un fallo."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Battery", "fr": "Batterie", "de": "Batterie", "es": "Batería" }
+        },
+        {
+          "key": "status",
+          "type": "multi_select",
+          "label": {
+            "en": "New status",
+            "fr": "Nouvel état",
+            "de": "Neuer Status",
+            "es": "Nuevo estado"
+          },
+          "options": [
+            {
+              "value": "charging",
+              "label": { "en": "Charging", "fr": "En charge", "de": "Lädt", "es": "Cargando" }
+            },
+            {
+              "value": "discharging",
+              "label": {
+                "en": "Discharging",
+                "fr": "En décharge",
+                "de": "Entlädt",
+                "es": "Descargando"
+              }
+            },
+            {
+              "value": "idle",
+              "label": { "en": "Idle", "fr": "Au repos", "de": "Leerlauf", "es": "Inactiva" }
+            },
+            {
+              "value": "standby",
+              "label": { "en": "Standby", "fr": "Attente", "de": "Standby", "es": "En espera" }
+            },
+            {
+              "value": "sleep",
+              "label": { "en": "Sleep", "fr": "Veille", "de": "Schlafmodus", "es": "Suspendida" }
+            },
+            {
+              "value": "off",
+              "label": { "en": "Off", "fr": "Arrêtée", "de": "Aus", "es": "Apagada" }
+            },
+            {
+              "value": "fault",
+              "label": { "en": "Fault", "fr": "Défaut", "de": "Fehler", "es": "Fallo" }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "status",
+          "type": "string",
+          "label": {
+            "en": "New status",
+            "fr": "Nouvel état",
+            "de": "Neuer Status",
+            "es": "Nuevo estado"
+          }
+        },
+        {
+          "key": "previous_status",
+          "type": "string",
+          "label": {
+            "en": "Previous status",
+            "fr": "État précédent",
+            "de": "Vorheriger Status",
+            "es": "Estado anterior"
+          }
+        },
+        {
+          "key": "level",
+          "type": "number",
+          "label": {
+            "en": "Charge level (%)",
+            "fr": "Niveau de charge (%)",
+            "de": "Ladestand (%)",
+            "es": "Nivel de carga (%)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "connection_changed",
+      "label": {
+        "en": "Inverter connection lost or restored",
+        "fr": "Connexion à l'onduleur perdue ou rétablie",
+        "de": "Verbindung zum Wechselrichter verloren oder wiederhergestellt",
+        "es": "Conexión con el inversor perdida o restablecida"
+      },
+      "description": {
+        "en": "The inverter stopped answering over Modbus TCP (3 failed reads in a row), or answers again.",
+        "fr": "L'onduleur ne répond plus en Modbus TCP (3 lectures échouées de suite), ou répond de nouveau.",
+        "de": "Der Wechselrichter antwortet nicht mehr über Modbus TCP (3 Fehlversuche in Folge) oder wieder.",
+        "es": "El inversor ha dejado de responder por Modbus TCP (3 lecturas fallidas seguidas), o vuelve a responder."
+      },
+      "fields": [
+        {
+          "key": "state",
+          "type": "multi_select",
+          "label": { "en": "Connection", "fr": "Connexion", "de": "Verbindung", "es": "Conexión" },
+          "options": [
+            {
+              "value": "lost",
+              "label": { "en": "Lost", "fr": "Perdue", "de": "Verloren", "es": "Perdida" }
+            },
+            {
+              "value": "restored",
+              "label": {
+                "en": "Restored",
+                "fr": "Rétablie",
+                "de": "Wiederhergestellt",
+                "es": "Restablecida"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "state",
+          "type": "string",
+          "label": { "en": "Connection", "fr": "Connexion", "de": "Verbindung", "es": "Conexión" }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": { "en": "Error", "fr": "Erreur", "de": "Fehler", "es": "Error" }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "get_solar_status",
+      "label": {
+        "en": "Read the solar installation",
+        "fr": "Lire l'installation solaire",
+        "de": "Solaranlage auslesen",
+        "es": "Leer la instalación solar"
+      },
+      "description": {
+        "en": "Production, consumption, grid, battery and today's production, for the next actions.",
+        "fr": "Production, consommation, réseau, batterie et production du jour, pour les actions suivantes.",
+        "de": "Erzeugung, Verbrauch, Netz, Batterie und heutige Erzeugung für die nächsten Aktionen.",
+        "es": "Producción, consumo, red, batería y producción de hoy, para las acciones siguientes."
+      },
+      "timeout_seconds": 15,
+      "outputs": [
+        {
+          "key": "connected",
+          "type": "boolean",
+          "label": {
+            "en": "Inverter reachable",
+            "fr": "Onduleur joignable",
+            "de": "Wechselrichter erreichbar",
+            "es": "Inversor accesible"
+          }
+        },
+        {
+          "key": "production_power",
+          "type": "number",
+          "label": {
+            "en": "Production (W)",
+            "fr": "Production (W)",
+            "de": "Erzeugung (W)",
+            "es": "Producción (W)"
+          }
+        },
+        {
+          "key": "consumption_power",
+          "type": "number",
+          "label": {
+            "en": "Consumption (W)",
+            "fr": "Consommation (W)",
+            "de": "Verbrauch (W)",
+            "es": "Consumo (W)"
+          }
+        },
+        {
+          "key": "grid_power",
+          "type": "number",
+          "label": {
+            "en": "Grid (W, import > 0)",
+            "fr": "Réseau (W, soutirage > 0)",
+            "de": "Netz (W, Bezug > 0)",
+            "es": "Red (W, consumo > 0)"
+          }
+        },
+        {
+          "key": "battery_level",
+          "type": "number",
+          "label": {
+            "en": "Battery level (%)",
+            "fr": "Niveau batterie (%)",
+            "de": "Batteriestand (%)",
+            "es": "Nivel de batería (%)"
+          }
+        },
+        {
+          "key": "today_production",
+          "type": "number",
+          "label": {
+            "en": "Today's production (kWh)",
+            "fr": "Production du jour (kWh)",
+            "de": "Heutige Erzeugung (kWh)",
+            "es": "Producción de hoy (kWh)"
+          }
+        },
+        {
+          "key": "inverter_status",
+          "type": "string",
+          "label": {
+            "en": "Inverter status",
+            "fr": "État de l'onduleur",
+            "de": "Wechselrichterstatus",
+            "es": "Estado del inversor"
+          }
+        }
+      ]
+    },
+    {
+      "key": "set_production_limit",
+      "label": {
+        "en": "Limit the solar production",
+        "fr": "Limiter la production solaire",
+        "de": "Solarerzeugung begrenzen",
+        "es": "Limitar la producción solar"
+      },
+      "description": {
+        "en": "Active power limit in % of the nominal power (e.g. negative prices). 100 removes it.",
+        "fr": "Limite de puissance active en % de la puissance nominale (ex. prix négatifs). 100 la lève.",
+        "de": "Wirkleistungsbegrenzung in % der Nennleistung (z. B. negative Preise). 100 hebt sie auf.",
+        "es": "Límite de potencia activa en % de la potencia nominal (p. ej. precios negativos). 100 lo quita."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Inverter (default: the first one)",
+            "fr": "Onduleur (par défaut : le premier)",
+            "de": "Wechselrichter (Standard: der erste)",
+            "es": "Inversor (por defecto: el primero)"
+          }
+        },
+        {
+          "key": "limit",
+          "type": "number",
+          "label": {
+            "en": "Limit (%)",
+            "fr": "Limite (%)",
+            "de": "Grenze (%)",
+            "es": "Límite (%)"
+          },
+          "required": true,
+          "default": 100,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": { "en": "Applied", "fr": "Appliqué", "de": "Übernommen", "es": "Aplicado" }
+        },
+        {
+          "key": "limit",
+          "type": "number",
+          "label": {
+            "en": "Limit applied (%)",
+            "fr": "Limite appliquée (%)",
+            "de": "Übernommene Grenze (%)",
+            "es": "Límite aplicado (%)"
+          }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": { "en": "Error", "fr": "Erreur", "de": "Fehler", "es": "Error" }
+        }
+      ]
+    },
+    {
+      "key": "set_battery_mode",
+      "label": {
+        "en": "Set the battery mode",
+        "fr": "Changer le mode de la batterie",
+        "de": "Batteriemodus einstellen",
+        "es": "Cambiar el modo de la batería"
+      },
+      "description": {
+        "en": "Storage control mode of the StorEdge inverter.",
+        "fr": "Mode de gestion du stockage de l'onduleur StorEdge.",
+        "de": "Speichersteuerungsmodus des StorEdge-Wechselrichters.",
+        "es": "Modo de control del almacenamiento del inversor StorEdge."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Battery or inverter (default: the first inverter)",
+            "fr": "Batterie ou onduleur (par défaut : le premier onduleur)",
+            "de": "Batterie oder Wechselrichter (Standard: der erste Wechselrichter)",
+            "es": "Batería o inversor (por defecto: el primer inversor)"
+          }
+        },
+        {
+          "key": "mode",
+          "type": "select",
+          "label": { "en": "Mode", "fr": "Mode", "de": "Modus", "es": "Modo" },
+          "required": true,
+          "default": "maximize_self_consumption",
+          "options": [
+            {
+              "value": "maximize_self_consumption",
+              "label": {
+                "en": "Maximize self-consumption",
+                "fr": "Maximiser l'autoconsommation",
+                "de": "Eigenverbrauch maximieren",
+                "es": "Maximizar el autoconsumo"
+              }
+            },
+            {
+              "value": "time_of_use",
+              "label": {
+                "en": "Time of use",
+                "fr": "Selon les horaires (heures creuses)",
+                "de": "Zeitgesteuert",
+                "es": "Según horario"
+              }
+            },
+            {
+              "value": "backup_only",
+              "label": {
+                "en": "Backup only",
+                "fr": "Secours uniquement",
+                "de": "Nur Notstrom",
+                "es": "Solo respaldo"
+              }
+            },
+            {
+              "value": "remote_control",
+              "label": {
+                "en": "Remote control",
+                "fr": "Pilotage distant",
+                "de": "Fernsteuerung",
+                "es": "Control remoto"
+              }
+            },
+            {
+              "value": "disabled",
+              "label": {
+                "en": "Disabled",
+                "fr": "Désactivé",
+                "de": "Deaktiviert",
+                "es": "Desactivado"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": { "en": "Applied", "fr": "Appliqué", "de": "Übernommen", "es": "Aplicado" }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": { "en": "Error", "fr": "Erreur", "de": "Fehler", "es": "Error" }
+        }
+      ]
+    },
+    {
+      "key": "battery_command",
+      "label": {
+        "en": "Charge or discharge the battery",
+        "fr": "Charger ou décharger la batterie",
+        "de": "Batterie laden oder entladen",
+        "es": "Cargar o descargar la batería"
+      },
+      "description": {
+        "en": "Remote command for a given duration, then back to the default mode.",
+        "fr": "Commande à distance pendant une durée donnée, puis retour au mode par défaut.",
+        "de": "Fernbefehl für eine bestimmte Dauer, danach zurück zum Standardmodus.",
+        "es": "Orden remota durante un tiempo dado, luego vuelta al modo por defecto."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Battery or inverter (default: the first inverter)",
+            "fr": "Batterie ou onduleur (par défaut : le premier onduleur)",
+            "de": "Batterie oder Wechselrichter (Standard: der erste Wechselrichter)",
+            "es": "Batería o inversor (por defecto: el primer inversor)"
+          }
+        },
+        {
+          "key": "command",
+          "type": "select",
+          "label": { "en": "Command", "fr": "Commande", "de": "Befehl", "es": "Orden" },
+          "required": true,
+          "default": "charge_pv_and_grid",
+          "options": [
+            {
+              "value": "charge_pv_and_grid",
+              "label": {
+                "en": "Charge from solar and grid",
+                "fr": "Charger depuis le solaire et le réseau",
+                "de": "Aus Solar und Netz laden",
+                "es": "Cargar desde solar y red"
+              }
+            },
+            {
+              "value": "charge_pv_first",
+              "label": {
+                "en": "Charge from solar first",
+                "fr": "Charger en priorité depuis le solaire",
+                "de": "Vorrangig aus Solar laden",
+                "es": "Cargar primero desde solar"
+              }
+            },
+            {
+              "value": "charge_excess_pv",
+              "label": {
+                "en": "Charge from solar surplus only",
+                "fr": "Charger uniquement avec le surplus solaire",
+                "de": "Nur mit Solarüberschuss laden",
+                "es": "Cargar solo con excedente solar"
+              }
+            },
+            {
+              "value": "discharge_to_match_load",
+              "label": {
+                "en": "Discharge to cover the house",
+                "fr": "Décharger pour couvrir la maison",
+                "de": "Entladen, um das Haus zu versorgen",
+                "es": "Descargar para cubrir la casa"
+              }
+            },
+            {
+              "value": "maximize_export",
+              "label": {
+                "en": "Maximize grid export",
+                "fr": "Maximiser l'injection réseau",
+                "de": "Netzeinspeisung maximieren",
+                "es": "Maximizar la inyección a la red"
+              }
+            },
+            {
+              "value": "maximize_self_consumption",
+              "label": {
+                "en": "Maximize self-consumption",
+                "fr": "Maximiser l'autoconsommation",
+                "de": "Eigenverbrauch maximieren",
+                "es": "Maximizar el autoconsumo"
+              }
+            },
+            {
+              "value": "off",
+              "label": {
+                "en": "Hold (no charge nor discharge)",
+                "fr": "Maintenir (ni charge ni décharge)",
+                "de": "Halten (weder laden noch entladen)",
+                "es": "Mantener (ni carga ni descarga)"
+              }
+            }
+          ]
+        },
+        {
+          "key": "duration",
+          "type": "number",
+          "label": {
+            "en": "Duration (minutes)",
+            "fr": "Durée (minutes)",
+            "de": "Dauer (Minuten)",
+            "es": "Duración (minutos)"
+          },
+          "required": true,
+          "default": 60,
+          "min": 1,
+          "max": 1440
+        },
+        {
+          "key": "power_limit",
+          "type": "number",
+          "label": {
+            "en": "Power limit (W, empty: none)",
+            "fr": "Limite de puissance (W, vide : aucune)",
+            "de": "Leistungsgrenze (W, leer: keine)",
+            "es": "Límite de potencia (W, vacío: ninguno)"
+          },
+          "min": 0,
+          "max": 100000
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": { "en": "Applied", "fr": "Appliqué", "de": "Übernommen", "es": "Aplicado" }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": { "en": "Error", "fr": "Erreur", "de": "Fehler", "es": "Error" }
+        }
+      ]
+    },
+    {
+      "key": "set_backup_reserve",
+      "label": {
+        "en": "Set the backup reserve",
+        "fr": "Régler la réserve de secours",
+        "de": "Notstromreserve einstellen",
+        "es": "Ajustar la reserva de respaldo"
+      },
+      "description": {
+        "en": "Share of the battery kept for power outages, in %.",
+        "fr": "Part de la batterie gardée pour les coupures de courant, en %.",
+        "de": "Anteil der Batterie, der für Stromausfälle reserviert bleibt, in %.",
+        "es": "Parte de la batería reservada para cortes de luz, en %."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Battery or inverter (default: the first inverter)",
+            "fr": "Batterie ou onduleur (par défaut : le premier onduleur)",
+            "de": "Batterie oder Wechselrichter (Standard: der erste Wechselrichter)",
+            "es": "Batería o inversor (por defecto: el primer inversor)"
+          }
+        },
+        {
+          "key": "reserve",
+          "type": "number",
+          "label": {
+            "en": "Reserve (%)",
+            "fr": "Réserve (%)",
+            "de": "Reserve (%)",
+            "es": "Reserva (%)"
+          },
+          "required": true,
+          "default": 20,
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "outputs": [
+        {
+          "key": "applied",
+          "type": "boolean",
+          "label": { "en": "Applied", "fr": "Appliqué", "de": "Übernommen", "es": "Aplicado" }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": { "en": "Error", "fr": "Erreur", "de": "Fehler", "es": "Error" }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "solar_overview",
+      "label": {
+        "en": "Solar production",
+        "fr": "Production solaire",
+        "de": "Solarerzeugung",
+        "es": "Producción solar"
+      },
+      "description": {
+        "en": "Live production, consumption and grid, today's production and inverter status.",
+        "fr": "Production, consommation et réseau en direct, production du jour, état de l'onduleur.",
+        "de": "Erzeugung, Verbrauch und Netz live, heutige Erzeugung und Wechselrichterstatus.",
+        "es": "Producción, consumo y red en directo, producción de hoy y estado del inversor."
+      },
+      "icon": "sun",
+      "action_timeout_seconds": 20,
+      "settings": [
+        {
+          "key": "chart_interval",
+          "type": "select",
+          "label": {
+            "en": "Chart period",
+            "fr": "Période du graphique",
+            "de": "Diagrammzeitraum",
+            "es": "Periodo del gráfico"
+          },
+          "default": "last-day",
+          "options": [
+            {
+              "value": "last-twelve-hours",
+              "label": {
+                "en": "Last 12 hours",
+                "fr": "12 dernières heures",
+                "de": "Letzte 12 Stunden",
+                "es": "Últimas 12 horas"
+              }
+            },
+            {
+              "value": "last-day",
+              "label": {
+                "en": "Last 24 hours",
+                "fr": "24 dernières heures",
+                "de": "Letzte 24 Stunden",
+                "es": "Últimas 24 horas"
+              }
+            },
+            {
+              "value": "last-three-days",
+              "label": {
+                "en": "Last 3 days",
+                "fr": "3 derniers jours",
+                "de": "Letzte 3 Tage",
+                "es": "Últimos 3 días"
+              }
+            },
+            {
+              "value": "last-week",
+              "label": {
+                "en": "Last week",
+                "fr": "Dernière semaine",
+                "de": "Letzte Woche",
+                "es": "Última semana"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "battery_overview",
+      "label": {
+        "en": "Solar battery",
+        "fr": "Batterie solaire",
+        "de": "Solarbatterie",
+        "es": "Batería solar"
+      },
+      "description": {
+        "en": "Charge level, charge and discharge power, status and mode of the battery.",
+        "fr": "Niveau, puissance de charge et de décharge, état et mode de la batterie.",
+        "de": "Ladestand, Lade- und Entladeleistung, Status und Modus der Batterie.",
+        "es": "Nivel, potencia de carga y descarga, estado y modo de la batería."
+      },
+      "icon": "battery-charging",
+      "action_timeout_seconds": 30
+    }
+  ]
+}

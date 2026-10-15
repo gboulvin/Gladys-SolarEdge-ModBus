@@ -1,0 +1,112 @@
+# SolarEdge (Modbus)
+
+This integration connects Gladys to your SolarEdge installation **locally**, over
+Modbus TCP: no SolarEdge account, no cloud, no API key, and a reading every few
+seconds instead of every 15 minutes.
+
+## What you get
+
+The integration detects everything that answers behind your inverter:
+
+| Device                  | Features                                                                                                                            |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Inverter** (each one) | Solar production (W), total production (kWh), AC voltage, AC current, heat sink temperature, status                                 |
+| **Grid meter**          | Grid power (W, import > 0, export < 0), import index (kWh), export index (kWh), house consumption (W)                               |
+| **Consumption meter**   | House consumption (W), consumption index (kWh)                                                                                      |
+| **Battery** (StorEdge)  | Charge level (%), charge power, discharge power (W), charged / discharged energy (kWh), available energy (kWh), temperature, status |
+
+The house consumption is computed from the production of the inverters and the
+grid exchange. The indexes feed the Gladys energy dashboard.
+
+## Before you start: enable Modbus TCP
+
+1. Open the **SetApp** application next to the inverter (or the LCD menu on older
+   inverters): **Commissioning → Site Communication → Modbus TCP → Enable**.
+2. Note the **port**: 1502 by default on SetApp inverters, often 502 on older ones.
+3. Give the inverter a **fixed IP address** in your router (DHCP reservation).
+4. Modbus TCP works over the **Ethernet** port of the inverter. Over Wi-Fi it
+   depends on the model and firmware.
+
+> The inverter accepts **a single Modbus TCP client at a time**. If another
+> system (Home Assistant, an energy manager…) already reads it over Modbus,
+> stop it, or the two will kick each other out.
+
+## Configuration
+
+| Field                           | Description                                                                                                          |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Inverter IP address             | The address of the inverter (the leader one with several inverters).                                                 |
+| Modbus TCP port                 | 1502 by default.                                                                                                     |
+| Modbus unit ids                 | `1` for a single inverter. Leader/follower installations: every inverter's id, comma separated (e.g. `1,2`).         |
+| Refresh interval                | Seconds between two reads (5 to 300, 10 by default). Large installations are automatically slowed down.              |
+| Solar surplus threshold         | Grid export (W) above which the _Solar surplus_ trigger fires (500 W by default).                                    |
+| Invert the grid meter direction | Turn on if Gladys shows an import while you export.                                                                  |
+| Allow inverter control          | Off by default: the integration only reads. Turn on to let scenes and widgets limit production or drive the battery. |
+
+Save, then click **Test the connection**: the integration lists what it found and
+the devices appear in the **Discovery** tab, ready to be added.
+
+## Scenes
+
+### Triggers
+
+- **Inverter status changed** — producing, limited, sleeping (night), fault…
+  Filter on the inverter and the new status. Variables: `status`,
+  `previous_status`, `power`.
+- **Solar surplus** — the grid export goes above the threshold (`started`) or
+  falls back below half of it (`ended`). Ideal to start a water heater, a pool
+  pump or an EV charge. Variables: `state`, `export_power`.
+- **Battery status changed** — charging, discharging, idle, fault…
+  Variables: `status`, `previous_status`, `level`.
+- **Inverter connection lost or restored** — after 3 failed reads in a row.
+  Variables: `state`, `message`.
+
+The standard Gladys "device state" trigger also works on every feature
+(e.g. _battery level above 90 %_, _production above 2000 W_).
+
+### Actions
+
+- **Read the solar installation** — returns production, consumption, grid power,
+  battery level, today's production and inverter status to the next actions
+  (conditions, notification texts…).
+- **Limit the solar production** — active power limit in % of the nominal power,
+  for instance during negative prices. 100 removes the limit. _The limit stays
+  stored in the inverter until it is changed again._
+- **Set the battery mode** — maximize self-consumption, time of use, backup only,
+  remote control.
+- **Charge or discharge the battery** — a remote command (charge from solar and
+  grid, discharge to cover the house, hold…) for a given duration, with an
+  optional power limit. Then the inverter returns to its default mode.
+- **Set the backup reserve** — share of the battery kept for power outages.
+
+The control actions require **Allow inverter control** in the configuration.
+Otherwise they return `applied = false` without touching the inverter. Battery
+commands require a StorEdge inverter; charging from the grid may also require
+the "AC charge" policy enabled by your installer.
+
+## Dashboard
+
+- **Solar production** — live production, consumption, grid exchange and battery
+  level, a production chart (period configurable), today's production, the
+  inverter status and your self-sufficiency.
+- **Solar battery** — charge level, charge and discharge power, available energy,
+  status, health, mode and backup reserve. When control is allowed, two buttons
+  switch the battery to self-consumption or backup only.
+
+## Configuration screen buttons
+
+- **Test the connection** — detects the installation and refreshes the devices.
+- **Remove the production limit** — sets every inverter back to 100 %.
+
+## Troubleshooting
+
+- **"Cannot reach…"**: check the IP address and the port, that Modbus TCP is
+  enabled, and that no other Modbus client is connected.
+- **Exception 11 / no answer on unit id**: the unit id is wrong. Single inverters
+  use `1`.
+- **Grid power with the wrong sign**: turn on _Invert the grid meter direction_.
+- **Today's production** starts from the first reading of the day (local time of
+  the integration) and survives restarts.
+- At night most inverters keep answering in _sleeping_ mode; some stop answering:
+  the devices stay in Gladys and come back at sunrise.
+- Logs: open the integration logs in Gladys. Set `LOG_LEVEL=debug` for details.
