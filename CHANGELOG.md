@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-15
+
 ### Added
 
 - Local connection to SolarEdge inverters over Modbus TCP (SunSpec), without
@@ -43,4 +45,5 @@ the notes of the version's GitHub Release.
 
 - CI: `actions/setup-node` v7, `docker/setup-qemu-action` v4, Prettier 3.9.10.
 
-[Unreleased]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/commits/main
+[Unreleased]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/releases/tag/v1.0.1
