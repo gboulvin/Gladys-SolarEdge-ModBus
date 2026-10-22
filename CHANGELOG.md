@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-22
+
 ### Security
 
 - `brace-expansion`, pulled in by ESLint, raised to 5.0.12 against the
@@ -53,5 +55,6 @@ the notes of the version's GitHub Release.
 
 - CI: `actions/setup-node` v7, `docker/setup-qemu-action` v4, Prettier 3.9.10.
 
-[Unreleased]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/gboulvin/Gladys-SolarEdge-ModBus/releases/tag/v1.0.1

@@ -1,6 +1,6 @@
 {
   "name": "gladys-solaredge-modbus",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Gladys Assistant integration for SolarEdge inverters, meters and batteries, locally over Modbus TCP.",
   "type": "module",
