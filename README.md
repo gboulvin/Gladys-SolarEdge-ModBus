@@ -27,7 +27,7 @@ SolarEdge account, no cloud, a reading every few seconds.
 - **Local only** (`transports: ["local"]`), category **Energy**.
 - Texts and docs in **English, French, German and Spanish**.
 
-Requires **Gladys 5.1.0** or later and an inverter with Modbus TCP enabled
+Requires **Gladys 5.3.0** or later and an inverter with Modbus TCP enabled
 (SetApp: _Commissioning → Site Communication → Modbus TCP_, port 1502 by
 default).
 
