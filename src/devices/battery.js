@@ -101,7 +101,12 @@ export function buildBatteryDevice(gladys, info) {
         T.SENSOR.DECIMAL,
         { unit: U.CELSIUS, min: -40, max: 100 },
       ),
-      feature(BATTERY_FEATURES.STATUS, 'Status', C.TEXT, T.TEXT.TEXT, { keep_history: false }),
+      feature(BATTERY_FEATURES.STATUS, 'Status', C.TEXT, T.TEXT.TEXT, {
+        // No range, but Gladys stores min / max as NOT NULL columns.
+        min: 0,
+        max: 0,
+        keep_history: false,
+      }),
     ],
   };
 }
